@@ -1,0 +1,4 @@
+{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"AbMrkis3QaYZDKVM","rule":"india/karnatka/*","access":"deny","_id":"EaTaArlZzEPaPLFk","rightsOwner":"zr8Yf8Rf9PkT56LY"}
+{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"AbMrkis3QaYZDKVM","rule":"india/tn/chennai/*","access":"deny","_id":"JTVslpK03pr87t4e","rightsOwner":"zr8Yf8Rf9PkT56LY"}
+{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"AbMrkis3QaYZDKVM","rule":"usa/*/*/*","access":"allow","_id":"a1jgPM5lflSoNgtp","rightsOwner":"zr8Yf8Rf9PkT56LY"}
+{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"AbMrkis3QaYZDKVM","rule":"india/*/*/*","access":"allow","_id":"gwMjcEyc7yNjYC62","rightsOwner":"zr8Yf8Rf9PkT56LY"}
