@@ -51,19 +51,25 @@ module.exports = {
 				distributorName: 'string',
 				rightsOwner: 'string',
 				include: {
-					type: 'object',
-					props: {
-						cityName: { type: 'string', optional: true },
-						provinceName: { type: 'string', empty: false },
-						countryName: { type: 'string', empty: false },
+					type: 'array',
+					items: {
+						type: 'object',
+						props: {
+							cityName: {type: 'string', optional: true},
+							provinceName: {type: 'string', empty: false},
+							countryName: {type: 'string', empty: false},
+						},
 					},
 				},
 				exclude: {
-					type: 'object',
-					props: {
-						cityName: 'string',
-						provinceName: 'string',
-						countryName: 'string',
+					type: 'array',
+					items: {
+						type: 'object',
+						props: {
+							cityName: {type: 'string', optional: true},
+							provinceName: {type: 'string', empty: false},
+							countryName: {type: 'string', empty: false},
+						},
 					},
 				},
 			},
@@ -82,6 +88,7 @@ module.exports = {
 						exclude.provinceName,
 						exclude.countryName,
 					);
+
 				} catch (err) {
 					throw Error(err.message);
 				}
