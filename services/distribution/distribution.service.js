@@ -1,10 +1,11 @@
 'use strict';
 
 const _ = require('lodash');
+const jsonMerger = require('json-merger');
 
 const { getCities } = require('../../utlis/cities');
 const DbMixin = require('../../mixins/db.mixin');
-
+const QUBE = 'zr8Yf8Rf9PkT56LY'; // id of QUBE
 /**
  * distribution service
  */
@@ -107,16 +108,60 @@ module.exports = {
 			async handler(ctx) {
 				try {
 					const { distributorId, filmId, region } = ctx.params;
-					const rule = this.ruleGenerator(
-						region.cityName,
-						region.provinceName,
-						region.countryName,
-					);
-					return await this.checkPermission(
-						distributorId,
-						filmId,
-						rule,
-					);
+					let _rule= {};
+					const _permissions = await this.broker.call('v1.permission.find', {
+						query: {
+							filmId,
+							distributorId
+						},
+					});
+					// todo check empty
+					console.log({_permissions});
+					 _rule= _permissions[0].rule;
+
+
+					const _region = [];
+					if(region.countryName){
+						_region.push(region.countryName);
+					}if(region.provinceName){
+						_region.push(region.provinceName);
+					}if(region.cityName){
+						_region.push(region.cityName);
+					}
+
+					 let _rightsOwner = _permissions[0].rightsOwner;
+					 while(_rightsOwner !== QUBE){
+						 const _rightsOwnerPermissions = await this.broker.call('v1.permission.find', {
+							 query: {
+								 filmId,
+								 distributorId: _rightsOwner,
+							 },
+						 });
+						 console.log({_rightsOwnerPermissions});
+						 //merge rule
+						 const _rights = this.checkRule(_rightsOwnerPermissions[0].rule,_region);
+						 if(!_rights){
+							 return {
+								 access: false,
+							 };
+						 }
+						// _rule = jsonMerger.mergeObjects([_rule,_rightsOwnerPermissions[0].rule ]);
+						 _rightsOwner = _rightsOwnerPermissions[0].rightsOwner;
+					 }
+
+
+
+					return {access: this.checkRule(_rule, _region)};
+					// const rule = this.ruleGenerator(
+					// 	region.cityName,
+					// 	region.provinceName,
+					// 	region.countryName,
+					// );
+					// return await this.checkPermission(
+					// 	distributorId,
+					// 	filmId,
+					// 	rule,
+					// );
 				} catch (err) {
 					throw Error(err.message);
 				}
@@ -228,5 +273,51 @@ module.exports = {
 			const regexPattern = '^' + rule.replace(/\*/g, '[^/]+') + '$';
 			return new RegExp(regexPattern, 'i');
 		},
+		checkRule(rule,region) {
+			let current = rule;
+			let _allow = null;
+			for(let i = 0; i < region.length; i++) {
+				let key = region[i];
+
+				if(current[key]){
+					if(current[key].hasOwnProperty('allow')){
+						_allow = current[key].allow;
+					}
+					if (current[key].children) {
+						current = current[key].children;
+					}
+
+				}else{
+					break;
+				}
+			}
+			if(_allow !== null){
+				return _allow;
+			}
+			return this.checkParentRule(rule, region);
+		},
+		checkParentRule(rule,region) {
+			console.log('parent')
+			let current = rule;
+			for(let i = 0; i < region.length; i++) {
+				let key = region[i];
+
+				if(current[key]){
+					if(current[key].hasOwnProperty('allow')){
+						return current[key].allow;
+					}
+
+					if (current[key].children) {
+						current = current[key].children;
+					}
+
+				}else{
+					console.log('break');
+					break;
+
+				}
+			}
+			return false;
+		}
 	},
 };

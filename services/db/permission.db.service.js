@@ -22,9 +22,6 @@ module.exports = {
 			'rightsOwner',
 		],
 		entityValidator: {},
-		populates: {
-			distributorId: 'v1.distribution.get',
-		},
 	},
 
 	/**
