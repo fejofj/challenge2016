@@ -18,7 +18,6 @@ module.exports = {
 			'filmId',
 			'distributorId',
 			'rule',
-			'access',
 			'rightsOwner',
 		],
 		entityValidator: {},
