@@ -52,23 +52,25 @@ module.exports = {
 				rightsOwner: 'string',
 				include: {
 					type: 'array',
+					optional: true,
 					items: {
 						type: 'object',
 						props: {
-							cityName: {type: 'string', optional: true},
-							provinceName: {type: 'string', empty: false},
-							countryName: {type: 'string', empty: false},
+							cityName: { type: 'string', optional: true },
+							provinceName: { type: 'string', optional: true },
+							countryName: { type: 'string', empty: false },
 						},
 					},
 				},
 				exclude: {
 					type: 'array',
+					optional: true,
 					items: {
 						type: 'object',
 						props: {
-							cityName: {type: 'string', optional: true},
-							provinceName: {type: 'string', empty: false},
-							countryName: {type: 'string', empty: false},
+							cityName: { type: 'string', optional: true },
+							provinceName: { type: 'string', optional: true },
+							countryName: { type: 'string', empty: false },
 						},
 					},
 				},
@@ -77,18 +79,33 @@ module.exports = {
 			async handler(ctx) {
 				try {
 					const { include, exclude } = ctx.params;
-					this.checkRegionInfo(include, exclude);
-					this.validateLocation(
-						include.cityName,
-						include.provinceName,
-						include.countryName,
-					);
-					this.validateLocation(
-						exclude.cityName,
-						exclude.provinceName,
-						exclude.countryName,
-					);
+					for (const region of include) {
+						this.validateLocation(
+							region.cityName,
+							region.provinceName,
+							region.countryName,
+						);
+					}
+					for (const region of exclude) {
+						this.validateLocation(
+							region.cityName,
+							region.provinceName,
+							region.countryName,
+						);
+					}
+					//this.checkRegionInfo(include, exclude);
+					// this.validateLocation(
+					// 	include.cityName,
+					// 	include.provinceName,
+					// 	include.countryName,
+					// );
+					// this.validateLocation(
+					// 	exclude.cityName,
+					// 	exclude.provinceName,
+					// 	exclude.countryName,
+					// );
 
+					return this.ruleGenerator(include, exclude);
 				} catch (err) {
 					throw Error(err.message);
 				}
@@ -115,60 +132,58 @@ module.exports = {
 			async handler(ctx) {
 				try {
 					const { distributorId, filmId, region } = ctx.params;
-					let _rule= {};
-					const _permissions = await this.broker.call('v1.permission.find', {
-						query: {
-							filmId,
-							distributorId
+					let _rule = {};
+					const _permissions = await this.broker.call(
+						'v1.permission.find',
+						{
+							query: {
+								filmId,
+								distributorId,
+							},
 						},
-					});
+					);
 					// todo check empty
-					console.log({_permissions});
-					 _rule= _permissions[0].rule;
-
+					console.log({ _permissions });
+					_rule = _permissions[0].rule;
 
 					const _region = [];
-					if(region.countryName){
+					if (region.countryName) {
 						_region.push(region.countryName);
-					}if(region.provinceName){
+					}
+					if (region.provinceName) {
 						_region.push(region.provinceName);
-					}if(region.cityName){
+					}
+					if (region.cityName) {
 						_region.push(region.cityName);
 					}
 
-					 let _rightsOwner = _permissions[0].rightsOwner;
-					 while(_rightsOwner !== QUBE){
-						 const _rightsOwnerPermissions = await this.broker.call('v1.permission.find', {
-							 query: {
-								 filmId,
-								 distributorId: _rightsOwner,
-							 },
-						 });
-						 console.log({_rightsOwnerPermissions});
-						 //merge rule
-						 const _rights = this.checkRule(_rightsOwnerPermissions[0].rule,_region);
-						 if(!_rights){
-							 return {
-								 access: false,
-							 };
-						 }
+					let _rightsOwner = _permissions[0].rightsOwner;
+					while (_rightsOwner !== QUBE) {
+						const _rightsOwnerPermissions = await this.broker.call(
+							'v1.permission.find',
+							{
+								query: {
+									filmId,
+									distributorId: _rightsOwner,
+								},
+							},
+						);
+						console.log({ _rightsOwnerPermissions });
+						//merge rule
+						const _rights = this.checkRule(
+							_rightsOwnerPermissions[0].rule,
+							_region,
+						);
+						if (!_rights) {
+							return {
+								access: false,
+							};
+						}
 						// _rule = jsonMerger.mergeObjects([_rule,_rightsOwnerPermissions[0].rule ]);
-						 _rightsOwner = _rightsOwnerPermissions[0].rightsOwner;
-					 }
+						_rightsOwner = _rightsOwnerPermissions[0].rightsOwner;
+					}
 
-
-
-					return {access: this.checkRule(_rule, _region)};
-					// const rule = this.ruleGenerator(
-					// 	region.cityName,
-					// 	region.provinceName,
-					// 	region.countryName,
-					// );
-					// return await this.checkPermission(
-					// 	distributorId,
-					// 	filmId,
-					// 	rule,
-					// );
+					return { access: this.checkRule(_rule, _region) };
 				} catch (err) {
 					throw Error(err.message);
 				}
@@ -227,7 +242,7 @@ module.exports = {
 		validateLocation(city, province, country) {
 			const values = [city, province, country];
 			const nonEmptyCount = values.filter(
-				(value) => value.trim() !== '',
+				(value) => _.trim(value) !== '',
 			).length;
 
 			// Check if at least 2 values are non-empty
@@ -252,8 +267,110 @@ module.exports = {
 
 			if (!isValid) throw new Error('Invalid Location');
 		},
-		ruleGenerator(city, province, country) {
-			return `${_.kebabCase(country) || '*'}/${_.kebabCase(province) || '*'}/${_.kebabCase(city) || '*'}/*`;
+		ruleGenerator(include, exclude) {
+			let _rule = {};
+
+			if (include) {
+				for (const region of include) {
+					_rule = this.setRule(_rule, region, true);
+				}
+			}
+
+			if (exclude) {
+				for (const region of exclude) {
+					_rule = this.setRule(_rule, region, false);
+				}
+			}
+
+			return _rule;
+		},
+		setRule(rule, region, access) {
+			let _rule = rule;
+
+			if (region.countryName && region.provinceName && region.cityName) {
+				if (!_rule.hasOwnProperty(region.countryName)) {
+					_rule[region.countryName] = { children: {} };
+				}
+				if (!_rule[region.countryName].hasOwnProperty('children')) {
+					_rule[region.countryName] = {
+						..._rule[region.countryName],
+						children: {},
+					};
+				}
+
+				if (
+					!_rule[region.countryName]['children'].hasOwnProperty(
+						region.provinceName,
+					)
+				) {
+					_rule[region.countryName]['children'][region.provinceName] =
+						{
+							..._rule[region.countryName]['children'][
+								region.provinceName
+							],
+							children: {},
+						};
+				}
+				if (
+					!_rule[region.countryName]['children'][
+						region.provinceName
+					].hasOwnProperty('children')
+				) {
+					_rule[region.countryName]['children'][region.provinceName] =
+						{
+							..._rule[region.countryName]['children'][
+								region.provinceName
+							],
+							children: {},
+						};
+				}
+
+				if (
+					!_rule[region.countryName]['children'][region.provinceName][
+						'children'
+					].hasOwnProperty(region.cityName)
+				) {
+					_rule[region.countryName]['children'][region.provinceName][
+						'children'
+					][region.cityName] = {};
+				}
+
+				_rule[region.countryName]['children'][region.provinceName][
+					'children'
+				][region.cityName] = { access: access };
+			} else if (region.countryName && region.provinceName) {
+				if (!_rule.hasOwnProperty(region.countryName)) {
+					_rule[region.countryName] = { children: {} };
+				}
+				if (!_rule[region.countryName].hasOwnProperty('children')) {
+					_rule[region.countryName] = {
+						..._rule[region.countryName],
+						children: {},
+					};
+				}
+
+				if (
+					!_rule[region.countryName]['children'].hasOwnProperty(
+						region.provinceName,
+					)
+				) {
+					_rule[region.countryName]['children'][region.provinceName] =
+						{};
+				}
+				_rule[region.countryName]['children'][region.provinceName] = {
+					access: access,
+				};
+			} else if (region.countryName) {
+				if (!_rule.hasOwnProperty(region.countryName)) {
+					_rule[region.countryName] = {};
+				}
+
+				_rule[region.countryName] = {
+					access: access,
+				};
+			}
+
+			return _rule;
 		},
 		async checkPermission(id, filmId, rule) {
 			const _permissions = await this.broker.call('v1.permission.find', {
@@ -280,51 +397,48 @@ module.exports = {
 			const regexPattern = '^' + rule.replace(/\*/g, '[^/]+') + '$';
 			return new RegExp(regexPattern, 'i');
 		},
-		checkRule(rule,region) {
+		checkRule(rule, region) {
 			let current = rule;
 			let _allow = null;
-			for(let i = 0; i < region.length; i++) {
+			for (let i = 0; i < region.length; i++) {
 				let key = region[i];
 
-				if(current[key]){
-					if(current[key].hasOwnProperty('allow')){
+				if (current[key]) {
+					if (current[key].hasOwnProperty('allow')) {
 						_allow = current[key].allow;
 					}
 					if (current[key].children) {
 						current = current[key].children;
 					}
-
-				}else{
+				} else {
 					break;
 				}
 			}
-			if(_allow !== null){
+			if (_allow !== null) {
 				return _allow;
 			}
 			return this.checkParentRule(rule, region);
 		},
-		checkParentRule(rule,region) {
-			console.log('parent')
+		checkParentRule(rule, region) {
+			console.log('parent');
 			let current = rule;
-			for(let i = 0; i < region.length; i++) {
+			for (let i = 0; i < region.length; i++) {
 				let key = region[i];
 
-				if(current[key]){
-					if(current[key].hasOwnProperty('allow')){
+				if (current[key]) {
+					if (current[key].hasOwnProperty('allow')) {
 						return current[key].allow;
 					}
 
 					if (current[key].children) {
 						current = current[key].children;
 					}
-
-				}else{
+				} else {
 					console.log('break');
 					break;
-
 				}
 			}
 			return false;
-		}
+		},
 	},
 };
