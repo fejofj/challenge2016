@@ -32,6 +32,8 @@ For ease of test I have added a film use ```GET``` ```/api/v1/film``` for list f
 > **_NOTE:_** ```/api/v1/distribution/authorize-distribution``` to authorize api, ``include`` and ``exclude`` field supports array i.e You can add multiple regions at once
 > ``update`` & ``delete`` is not developed  
 
+> ***_NOTE:_*** I have set distributor ```Qube``` as the admin use this id as rightsOwner for initial authorization ```zr8Yf8Rf9PkT56LY``` 
+
 ## Thanks for the opportunity
 
 ```Febin K Joseph : febinjoseph63@gmail.com```
