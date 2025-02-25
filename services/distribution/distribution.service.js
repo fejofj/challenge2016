@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const jsonMerger = require('json-merger');
 
 const { getCities } = require('../../utlis/cities');
 const DbMixin = require('../../mixins/db.mixin');
@@ -24,26 +23,10 @@ module.exports = {
 	metadata: {},
 	dependencies: [],
 	actions: {
-		getDistributionList: {
-			rest: {
-				method: 'POST',
-				path: '/get-distribution-list',
-			},
-			cache: false,
-			async handler(ctx) {
-				try {
-					return await ctx.call('distribution.db.list', {});
-				} catch (err) {
-					console.error(err);
-
-					throw Error(err.message);
-				}
-			},
-		},
 		addDistribution: {
 			rest: {
 				method: 'POST',
-				path: '/add-distribution',
+				path: '/authorize-distribution',
 			},
 			params: {
 				$$strict: true,

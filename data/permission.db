@@ -1,2 +1,2 @@
-{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"AbMrkis3QaYZDKVM","rightsOwner":"zr8Yf8Rf9PkT56LY","rule":{"india":{"access":true,"children":{"karnataka":{"access":false},"tamil-nadu":{"children":{"chennai":{"access":false}}}}}},"_id":"rWhR4mOwlVq53kH8"}
-{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"insTnN5kNSP2rOGx","rightsOwner":"AbMrkis3QaYZDKVM","rule":{"india":{"access":true,"children":{"tamil-nadu":{"access":false}}}},"_id":"U6SHf72PlCjV0qXO"}
+{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"AbMrkis3QaYZDKVM","rightsOwner":"zr8Yf8Rf9PkT56LY","rule":{"india":{"access":true,"children":{"tamil-nadu":{"access":false}}}},"_id":"3wKQuxa5ogpLFNj2"}
+{"filmId":"XAN4Ijz6PgkvgJbT","distributorId":"insTnN5kNSP2rOGx","rightsOwner":"AbMrkis3QaYZDKVM","rule":{"india":{"access":true,"children":{"karnataka":{"access":false}}}},"_id":"bsEEL6owcyt0Nh1B"}

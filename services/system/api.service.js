@@ -39,7 +39,9 @@ module.exports = {
 				path: "/api",
 
 				whitelist: [
-					"**"
+					"v1.distribution.*",
+					"v1.film.*"
+
 				],
 
 				// Route-level Express middlewares. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Middlewares
